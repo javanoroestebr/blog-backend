@@ -36,6 +36,12 @@
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
 
+		<!-- Controle de migrações automáticas para o banco de dados; ideal para manter o banco sempre "em dia" com o código -->
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+		</dependency>
+
 		<!-- Configuração web; precisaremos dela para criar nossos serviços REST -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
