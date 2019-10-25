@@ -2,6 +2,9 @@ package br.usp.lucas.blogbackend.user;
 
 import br.usp.lucas.blogbackend.user.dto.UserReadDto;
 import br.usp.lucas.blogbackend.user.dto.UserWriteDto;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,13 +28,40 @@ public class UserRestController {
         this.repository = repository;
     }
 
-    //Este método será chamado quando o cliente mandar uma requisição HTTP GET apontando para a mesma URL do controlador
-    //(ex. http://localhost:8080/users), e irá produzir a resposta no formato JSON. Experimente abrir a URL no seu navegador!
+    /*
+    Este método será chamado quando o cliente mandar uma requisição HTTP GET apontando para a mesma URL do controlador
+    (ex. http://localhost:8080/users), e irá produzir a resposta no formato JSON. Experimente abrir a URL no seu navegador!
+
+    Se desejarmos, podemos passar alguns parâmetros na URL, como no exemplo: "http://localhost:8080/users?name=lu&email=hotmail".
+    Isto permitirá que busquemos apenas os usuários em que esses atributos contenham os valores que passarmos.
+
+    Ainda, podemos definir a ordenação dos usuários usando a classe Sort do Spring; para usá-la, passe na URL os campos
+    que deseja usar para a ordenação e, opcionalmente, a direção dela (por padrão, ascendente). Por exemplo:
+    "...?sort=name&sort=username,desc" usará o nome na ordem ascendente e, se dois ou mais forem iguais, usará o username
+    descendente.
+    */
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<UserReadDto> getAll() {
-        //Note que, para nos conectarmos ao banco e buscarmos a lista de usuários, basta chamarmos o método findAll.
-        //A implementação do repositório (que será feita automaticamente pelo Spring) se encarregará dos detalhes e do SQL.
-        List<User> users = repository.findAll();
+    public List<UserReadDto> getAll(UserFilter filter, Sort sort) {
+        //Primeiramente, vamos definir uma "entidade de exemplo", sem nenhum atributo previamente definido
+        User exampleUser = new User();
+
+        //Agora, vamos definir os campos passados no filtro. Se nenhum campo foi passado, a busca retornará todos os usuários;
+        //senão, apenas os usuários correspondentes ao exemplo serão retornados. Note que definir o ID não é necessário,
+        //pois já existe o web service getById; fica a seu critério definir se o utilizará no filtro ou não.
+        exampleUser.setId(filter.getId());
+        exampleUser.setName(filter.getName());
+        exampleUser.setUsername(filter.getUsername());
+        exampleUser.setEmail(filter.getEmail());
+
+        //Agora, vamos definir um matcher. Esse objeto definirá como os atributos devem ser usados no filtro; no exemplo,
+        //ele define que TODOS os filtros devem ser obedecidos na busca e basta que os campos de texto contenham apenas
+        //parte do valor passado no filtro (e não seja uma busca por EXATAMENTE aquele texto).
+        ExampleMatcher matcher = ExampleMatcher.matching()
+                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING);
+
+        //Agora, crie um objeto Example para ser usado no repositório
+        Example<User> example = Example.of(exampleUser, matcher);
+        List<User> users = repository.findAll(example, sort);
 
         List<UserReadDto> dtos = new ArrayList<>(users.size());
         for (User user : users) {
