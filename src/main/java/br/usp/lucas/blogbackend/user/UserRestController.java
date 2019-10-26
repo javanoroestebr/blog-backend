@@ -55,9 +55,10 @@ public class UserRestController {
 
         //Agora, vamos definir um matcher. Esse objeto definirá como os atributos devem ser usados no filtro; no exemplo,
         //ele define que TODOS os filtros devem ser obedecidos na busca e basta que os campos de texto contenham apenas
-        //parte do valor passado no filtro (e não seja uma busca por EXATAMENTE aquele texto).
+        //parte do valor passado no filtro (e não seja uma busca por EXATAMENTE aquele texto), ignorando letras maiúsculas ou minúsculas.
         ExampleMatcher matcher = ExampleMatcher.matching()
-                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING);
+                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
+                .withIgnoreCase();
 
         //Agora, crie um objeto Example para ser usado no repositório
         Example<User> example = Example.of(exampleUser, matcher);
